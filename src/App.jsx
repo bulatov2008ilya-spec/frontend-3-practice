@@ -1,0 +1,132 @@
+import React, { useState } from 'react';
+
+const MONTHS = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+const DAYS_OF_WEEK = ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
+const TIME_SLOTS = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00"];
+
+export default function App() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [currentYear, setCurrentYear] = useState(today.getFullYear());
+    const [currentMonth, setCurrentMonth] = useState(today.getMonth());
+    const [selectedDay, setSelectedDay] = useState(today.getDate());
+    const [selectedTime, setSelectedTime] = useState(null);
+
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    const handleMonthChange = (direction) => {
+        let newMonth = currentMonth + direction;
+        let newYear = currentYear;
+
+        if (newMonth < 0) {
+            newMonth = 11;
+            newYear--;
+        } else if (newMonth > 11) {
+            newMonth = 0;
+            newYear++;
+        }
+
+        setCurrentMonth(newMonth);
+        setCurrentYear(newYear);
+        setSelectedDay(null);
+        setSelectedTime(null);
+    };
+
+    const handleDayClick = (day) => {
+        setSelectedDay(day);
+        setSelectedTime(null);
+    };
+
+    const getBottomBarText = () => {
+        if (!selectedDay) return 'Выберите дату и время в календаре';
+        const dateObj = new Date(currentYear, currentMonth, selectedDay);
+        const dayName = DAYS_OF_WEEK[dateObj.getDay()];
+        const monthName = MONTHS[currentMonth].toLowerCase();
+        const timeText = selectedTime ? ` • Время: ${selectedTime}` : ' • Время не выбрано';
+        return `${dayName}, ${selectedDay} ${monthName} ${currentYear} г.${timeText}`;
+    };
+
+    return (
+        <div>
+            <header style={{ textAlign: 'center', padding: '15px' }}>
+                <h1>Барбершоп</h1>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', marginTop: '10px' }}>
+                    <button onClick={() => handleMonthChange(-1)} style={{ padding: '10px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444', borderRadius: '6px', cursor: 'pointer' }}>&lt;</button>
+                    <span style={{ fontSize: '18px', fontWeight: 'bold', minWidth: '150px', textAlign: 'center' }}>{MONTHS[currentMonth]} {currentYear}</span>
+                    <button onClick={() => handleMonthChange(1)} style={{ padding: '10px', backgroundColor: '#2a2a2a', color: 'white', border: '1px solid #444', borderRadius: '6px', cursor: 'pointer' }}>&gt;</button>
+                </div>
+            </header>
+
+            <main style={{ display: 'flex', flexDirection: 'column', gap: '30px', maxWidth: '600px', margin: '0 auto' }}>
+                <section>
+                    <h2>Выберите день</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px' }}>
+                        {daysArray.map((day) => {
+                            const cellDate = new Date(currentYear, currentMonth, day);
+                            const isDisabled = cellDate < today;
+                            const isActive = selectedDay === day;
+
+                            return (
+                                <button
+                                    key={day}
+                                    disabled={isDisabled}
+                                    onClick={() => handleDayClick(day)}
+                                    style={{
+                                        padding: '10px',
+                                        backgroundColor: isDisabled ? '#222' : (isActive ? '#61dafb' : '#2a2a2a'),
+                                        color: isDisabled ? '#555' : (isActive ? '#000' : 'white'),
+                                        border: isDisabled ? '1px solid #222' : '1px solid #444',
+                                        borderRadius: '6px',
+                                        cursor: isDisabled ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    {day}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </section>
+
+                <section>
+                    <h2>Доступное время</h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '8px' }}>
+                        {!selectedDay ? (
+                            <div style={{ gridColumn: '1/-1', color: '#777' }}>Выберите день</div>
+                        ) : (
+                            TIME_SLOTS.map((slot) => {
+                                const isActive = selectedTime === slot;
+                                return (
+                                    <button
+                                        key={slot}
+                                        onClick={() => setSelectedTime(slot)}
+                                        style={{
+                                            padding: '10px',
+                                            backgroundColor: isActive ? '#61dafb' : '#2a2a2a',
+                                            color: isActive ? '#000' : 'white',
+                                            border: '1px solid #444',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {slot}
+                                    </button>
+                                );
+                            })
+                        )}
+                    </div>
+                </section>
+            </main>
+
+            <footer style={{ textAlign: 'center', padding: '15px', marginTop: '20px' }}>
+                <div style={{ backgroundColor: '#2a2a2a', padding: '15px', marginBottom: '15px', borderRadius: '6px', fontWeight: 'bold' }}>
+                    {getBottomBarText()}
+                </div>
+                <button style={{ backgroundColor: '#28a745', color: 'white', padding: '12px', border: 'none', borderRadius: '6px', width: '100%', maxWidth: '300px', cursor: 'pointer', fontSize: '16px' }}>
+                    Продолжить
+                </button>
+            </footer>
+        </div>
+    );
+}
